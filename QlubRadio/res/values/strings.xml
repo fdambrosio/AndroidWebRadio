@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Qlub Radio</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Ascolta Qlub Radio</string>
+    <color name="bianco">#fdfdfd</color>
+
+</resources>
