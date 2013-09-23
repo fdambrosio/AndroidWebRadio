@@ -9,7 +9,8 @@
         android:targetSdkVersion="17" />
 
     <uses-permission android:name="android.permission.INTERNET" />
-
+	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>   
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
         android:allowBackup="true"
         android:icon="@drawable/ico"
@@ -25,6 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name="com.example.qubradio.MyService"></service>
         <activity
             android:name="com.example.qubradio.Credits"
             android:label="@string/title_activity_credits" >

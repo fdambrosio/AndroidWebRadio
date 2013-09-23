@@ -6,16 +6,24 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.telephony.PhoneStateListener;
+import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,13 +37,14 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class MainActivity extends Activity {
 	
-	boolean isRing=true; //controllo per le chiamate in arrivo -- da sistemare con Broadcast Receiver
-	MediaPlayer	mp;
 	private SeekBar volumeSeekbar = null;
     private AudioManager audioManager = null; 
     private ProgressBar pb ;
     private TextView onair ;
     Uri myUri;
+    Intent intent;
+    
+   
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -45,9 +54,7 @@ public class MainActivity extends Activity {
 		final ImageButton pause = (ImageButton) findViewById(R.id.pauseButton);
 		pb = (ProgressBar) findViewById(R.id.streaming);
 		onair = (TextView) findViewById(R.id.onair);
-		
-		pb.setVisibility(View.INVISIBLE);
-		onair.setVisibility(View.INVISIBLE);
+	
 		
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
@@ -55,14 +62,17 @@ public class MainActivity extends Activity {
 		initControls();//inizializzo volume  default
 		
 		
-		myUri = Uri.parse("http://shoutcast.rtl.it:3010"); //url di Qubradio: http://79.59.211.91:8080--/
-		mp = new MediaPlayer();
+		// il receiver riceve i messaggi sul cambio della connettività
+		IntentFilter filter = new IntentFilter();
+		filter.addAction("aandroid.net.conn.CONNECTIVITY_CHANGE");
+		registerReceiver(isConnected, filter); //
 		
 		
-		mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-		
-		
-		startPlayer();
+	
+		//inizializza l'intent per il service e lo lancia
+		intent = new Intent(getApplicationContext(), MyService.class);
+		startService(intent);
+	
 	
 		
 		play.setOnClickListener(new View.OnClickListener() {
@@ -70,17 +80,15 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-			if(!mp.isPlaying()){
 				
-				startPlayer();
-				
-
-				if (mp.isPlaying()){
+				if(!isMyServiceRunning()){ //fa partire il service se inattivo
+					startService(intent);
 					pb.setVisibility(View.VISIBLE);
 					onair.setVisibility(View.VISIBLE);
-					}
-				
-				}	
+					
+				}
+			
+			
 			}
 		});
 		
@@ -90,58 +98,21 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				if(mp.isPlaying()){
-					mp.stop();
-					mp.reset();
-					
+				if(isMyServiceRunning()){ //se il service è attivo lo stoppa
+					stopService(intent);
 					pb.setVisibility(View.INVISIBLE);
 					onair.setVisibility(View.INVISIBLE);
 					
 				}
+				
+				
 			}
-		});
-		
-		
-		
-		
-		
-		
-		
-		mp.setOnPreparedListener(new OnPreparedListener(){
-            public void onPrepared(MediaPlayer mp) {
-                     mp.start();
-                     if (mp.isPlaying()){
-             			pb.setVisibility(View.VISIBLE);
-             			onair.setVisibility(View.VISIBLE);
-             			}
-            } 
 		});
 		
 		
 	}
 		
-	public void startPlayer(){
-		try {
-			mp.setDataSource(this, myUri);
-			mp.prepareAsync();
-			if (mp.isPlaying()){
-			pb.setVisibility(View.VISIBLE);
-			onair.setVisibility(View.VISIBLE);
-			}
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+	
 //-----------------
 	
 	private void initControls()
@@ -190,30 +161,21 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 	    super.onDestroy();
 	    
-	   mp.stop();
-	   mp.release();
+	    //stoppa il Service e cancella il receiver
+	    unregisterReceiver(isConnected); 
+	    stopService(intent);
 	
 	}
 	
 	
-	//l'app va in pausa o viene chiamata una nuova app
-	@Override
-	protected void onPause() {
-		// TODO Auto-generated method stub
-		super.onPause();
-		
-		if(isRing){
-			mp.stop();
-			mp.reset();
-		}
-		
-		
-		
-	}
 	
 	//viene premuto il tasto indietro
 	@Override
 	public void onBackPressed() {
+		
+		if(isMyServiceRunning()){
+			
+		
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	    
@@ -221,20 +183,22 @@ public class MainActivity extends Activity {
 	    builder.setPositiveButton("Si", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
 	                // torna indietro e non stoppa la radio: onPause()
-	            	isRing=false;
+	            	
 	            	moveTaskToBack (true);
 	            }
 	        });
 	    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
 	                // stoppa la radio
-	            	
+	         
 	            	MainActivity.this.finish();
 	            }
 	        });
 	    
 	    AlertDialog dialog = builder.create();
 	    dialog.show();
+	    
+		}else finish();
 	    
 	}
     
@@ -244,19 +208,48 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 		super.onResume();
 		
-		if(!isRing) isRing = true;
-		
-		else{
-			startPlayer();
+		if(!isMyServiceRunning()){
+			startService(intent);
+			pb.setVisibility(View.VISIBLE);
+			onair.setVisibility(View.VISIBLE);
+			
 		}
+		
 		
 		
 	}
 	
 	
-	  
-	  
+	//receiver per i problemi di rete NON FUNZIONA
+	private final BroadcastReceiver isConnected = new BroadcastReceiver() {
+		   @Override
+		   public void onReceive(Context context, Intent intent) {
+			   ConnectivityManager cm = (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+			     NetworkInfo netInfo = cm.getActiveNetworkInfo();
+			   boolean isConnected = netInfo != null && netInfo.isConnectedOrConnecting()&& cm.getActiveNetworkInfo().isAvailable()&& cm.getActiveNetworkInfo().isConnected();  
+
+			   if (!isConnected){
+				   Toast toast = Toast.makeText(getApplicationContext(), "Errore di rete", 1000);
+			    	 toast.show();
+				    pb.setVisibility(View.INVISIBLE);
+					onair.setVisibility(View.INVISIBLE);
+			   		}
+				 
+
+		   }
+		};
 	
+	  
+	  
+	 private boolean isMyServiceRunning() {
+		    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+		    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+		        if (MyService.class.getName().equals(service.service.getClassName())) {
+		            return true;
+		        }
+		    }
+		    return false;
+		}
 	
 	
 	
@@ -272,7 +265,6 @@ public class MainActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 	      case R.id.credits:
-	    	  isRing=false;
 	    	  Intent case2 = new Intent(getApplicationContext(), Credits.class);
   	    	  startActivity(case2);
 	        return true;
