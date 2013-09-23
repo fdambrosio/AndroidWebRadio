@@ -9,9 +9,13 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,12 +29,13 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class MainActivity extends Activity {
 	
+	boolean isRing=true; //controllo per le chiamate in arrivo -- da sistemare con Broadcast Receiver
 	MediaPlayer	mp;
 	private SeekBar volumeSeekbar = null;
     private AudioManager audioManager = null; 
     private ProgressBar pb ;
     private TextView onair ;
-	
+    Uri myUri;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -50,34 +55,15 @@ public class MainActivity extends Activity {
 		initControls();//inizializzo volume  default
 		
 		
-		Uri myUri = Uri.parse("http://shoutcast.rtl.it:3010"); //url di Qubradio: http://79.59.211.91:8080--/
+		myUri = Uri.parse("http://shoutcast.rtl.it:3010"); //url di Qubradio: http://79.59.211.91:8080--/
 		mp = new MediaPlayer();
 		
 		
 		mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		
-		try {
-			mp.setDataSource(this, myUri);
-			mp.prepareAsync();
-			if (mp.isPlaying()){
-			pb.setVisibility(View.VISIBLE);
-			onair.setVisibility(View.VISIBLE);}
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
-		
-		
+		startPlayer();
+	
 		
 		play.setOnClickListener(new View.OnClickListener() {
 			
@@ -86,10 +72,9 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 			if(!mp.isPlaying()){
 				
-				mp.prepareAsync();
+				startPlayer();
 				
-				/*play.setBackgroundResource(android.R.drawable.);
-				pause.setBackgroundResource(android.R.drawable.btn_default);*/
+
 				if (mp.isPlaying()){
 					pb.setVisibility(View.VISIBLE);
 					onair.setVisibility(View.VISIBLE);
@@ -107,12 +92,11 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				if(mp.isPlaying()){
 					mp.stop();
+					mp.reset();
 					
 					pb.setVisibility(View.INVISIBLE);
 					onair.setVisibility(View.INVISIBLE);
 					
-					/*play.setBackgroundResource(android.R.drawable.btn_default);
-					pause.setBackgroundResource(android.R.drawable.alert_dark_frame);*/
 				}
 			}
 		});
@@ -128,13 +112,36 @@ public class MainActivity extends Activity {
                      mp.start();
                      if (mp.isPlaying()){
              			pb.setVisibility(View.VISIBLE);
-             			onair.setVisibility(View.VISIBLE);}
+             			onair.setVisibility(View.VISIBLE);
+             			}
             } 
 		});
 		
 		
 	}
 		
+	public void startPlayer(){
+		try {
+			mp.setDataSource(this, myUri);
+			mp.prepareAsync();
+			if (mp.isPlaying()){
+			pb.setVisibility(View.VISIBLE);
+			onair.setVisibility(View.VISIBLE);
+			}
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 //-----------------
 	
 	private void initControls()
@@ -178,23 +185,57 @@ public class MainActivity extends Activity {
 //-----------------
 		
 	
-	
+	//l'app viene distrutta
 	@Override
 	protected void onDestroy() {
 	    super.onDestroy();
-	    mp.stop(); 
-	    pb.setVisibility(View.INVISIBLE);
-		onair.setVisibility(View.INVISIBLE);
+	    
+	   mp.stop();
+	   mp.release();
+	
 	}
 	
+	
+	//l'app va in pausa o viene chiamata una nuova app
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
-		mp.stop();
-		pb.setVisibility(View.INVISIBLE);
-		onair.setVisibility(View.INVISIBLE);
 		
+		if(isRing){
+			mp.stop();
+			mp.reset();
+		}
+		
+		
+		
+	}
+	
+	//viene premuto il tasto indietro
+	@Override
+	public void onBackPressed() {
+		
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    
+	    builder.setTitle("Vuoi tenere la radio accesa ?");
+	    builder.setPositiveButton("Si", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	                // torna indietro e non stoppa la radio: onPause()
+	            	isRing=false;
+	            	moveTaskToBack (true);
+	            }
+	        });
+	    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	                // stoppa la radio
+	            	
+	            	MainActivity.this.finish();
+	            }
+	        });
+	    
+	    AlertDialog dialog = builder.create();
+	    dialog.show();
+	    
 	}
     
 	
@@ -202,23 +243,21 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		/*mp.prepareAsync();*/
-		try {
-			mp.prepare();
-			mp.start();
-			pb.setVisibility(View.VISIBLE);
-			
-			onair.setVisibility(View.VISIBLE);
-		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
+		if(!isRing) isRing = true;
+		
+		else{
+			startPlayer();
 		}
 		
+		
 	}
-
+	
+	
+	  
+	  
+	
+	
 	
 	
 
@@ -233,6 +272,7 @@ public class MainActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 	      case R.id.credits:
+	    	  isRing=false;
 	    	  Intent case2 = new Intent(getApplicationContext(), Credits.class);
   	    	  startActivity(case2);
 	        return true;
