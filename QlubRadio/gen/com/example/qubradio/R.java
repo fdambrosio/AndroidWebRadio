@@ -24,20 +24,38 @@ public final class R {
         public static final int activity_vertical_margin=0x7f040001;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
-        public static final int logo=0x7f020001;
-        public static final int uno=0x7f020002;
+        public static final int btblogo=0x7f020000;
+        public static final int ic_launcher=0x7f020001;
+        public static final int ico=0x7f020002;
+        public static final int locat=0x7f020003;
+        public static final int logo=0x7f020004;
+        public static final int logoqlub=0x7f020005;
+        public static final int mail=0x7f020006;
+        public static final int pause=0x7f020007;
+        public static final int phone=0x7f020008;
+        public static final int play=0x7f020009;
+        public static final int qlubradiologo=0x7f02000a;
+        public static final int uno=0x7f02000b;
     }
     public static final class id {
-        public static final int LinearLayout1=0x7f090000;
-        public static final int action_settings=0x7f090005;
-        public static final int imageView1=0x7f090004;
-        public static final int pauseButton=0x7f090003;
-        public static final int playButton=0x7f090002;
-        public static final int textView1=0x7f090001;
+        public static final int ImageView02=0x7f090006;
+        public static final int LinearLayout1=0x7f090008;
+        public static final int credits=0x7f09000d;
+        public static final int imageView2=0x7f090003;
+        public static final int iqlubradiologo=0x7f090001;
+        public static final int linearLayout1=0x7f090000;
+        public static final int onair=0x7f090007;
+        public static final int pauseButton=0x7f09000a;
+        public static final int phone=0x7f090005;
+        public static final int playButton=0x7f090009;
+        public static final int streaming=0x7f09000c;
+        public static final int textView1=0x7f090002;
+        public static final int textView2=0x7f090004;
+        public static final int volumebar=0x7f09000b;
     }
     public static final class layout {
-        public static final int activity_main=0x7f030000;
+        public static final int activity_credits=0x7f030000;
+        public static final int activity_main=0x7f030001;
     }
     public static final class menu {
         public static final int main=0x7f080000;
@@ -46,6 +64,7 @@ public final class R {
         public static final int action_settings=0x7f050001;
         public static final int app_name=0x7f050000;
         public static final int hello_world=0x7f050002;
+        public static final int title_activity_credits=0x7f050003;
     }
     public static final class style {
         /** 

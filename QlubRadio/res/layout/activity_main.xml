@@ -1,9 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/LinearLayout1"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/uno"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#000000"
+    android:focusableInTouchMode="false"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -11,42 +12,94 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:text="@string/hello_world"
-        android:textColor="@color/bianco"
-        android:textSize="20dp" />
+    <ImageView
+        android:id="@+id/iqlubradiologo"
+        android:layout_width="288dp"
+        android:layout_height="94dp"
+        android:src="@drawable/logoqlub" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:gravity="center" >
+        android:layout_height="240dp"
+        android:orientation="vertical" >
 
-        <ImageButton
-            android:id="@+id/playButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.05"
-            android:background="@android:drawable/btn_default"
-            android:src="@android:drawable/ic_media_play" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="89dp"
+            android:layout_marginTop="20dp"
+            android:layout_weight="0.05"
+            android:background="@drawable/uno"
+            android:gravity="center" >
 
-        <ImageButton
-            android:id="@+id/pauseButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_media_pause" />
+            <ImageButton
+                android:id="@+id/playButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="100dp"
+                android:layout_weight="0.8"
+                android:baselineAlignBottom="true"
+                android:cropToPadding="true"
+                android:src="@drawable/play" />
+
+            <ImageButton
+                android:id="@+id/pauseButton"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="124dp"
+                android:layout_height="wrap_content"
+                android:src="@drawable/pause" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VOLUME"
+                    android:textColor="#FFFFFF" />
+
+                <SeekBar
+                    android:id="@+id/volumebar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/onair"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="63dp"
+                android:text="ON AIR"
+                android:textColor="#ff0000"
+                android:textSize="30dp" />
+
+            <ProgressBar
+                android:id="@+id/streaming"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginRight="21dp"
+                android:layout_toLeftOf="@+id/onair"
+                android:visibility="visible" />
+
+        </RelativeLayout>
+
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="272dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.84"
-        android:src="@drawable/logo" />
 
 </LinearLayout>
